@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MetaMask Sign-In</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.0/dist/ethers.min.js"></script>
+  </head>
+  <body>
+    <h1>Login or Sign Up with MetaMask</h1>
+    <button id="connect">Connect Wallet</button>
+
+    <script>
+      const CONTRACT_ADDRESS = "YOUR_SMART_CONTRACT_ADDRESS";
+      const ABI = [
+        {
+          inputs: [],
+          name: "authenticate",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [{ internalType: "address", name: "user", type: "address" }],
+          name: "isUserRegistered",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "isNewUser",
+              type: "bool",
+            },
+          ],
+          name: "UserAuthenticated",
+          type: "event",
+        },
+      ];
+
+      document.getElementById("connect").addEventListener("click", async () => {
+        if (typeof window.ethereum !== "undefined") {
+          console.log("MetaMask is available!");
+
+          // Request connection to MetaMask
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+
+          // Connect to the smart contract
+          const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+          try {
+            // Call the authenticate function
+            const tx = await contract.authenticate();
+            await tx.wait(); // Wait for transaction to be mined
+            alert("User authenticated successfully!");
+          } catch (error) {
+            console.error("Error during authentication:", error);
+          }
+        } else {
+          alert("MetaMask is not installed!");
+        }
+      });
+    </script>
+  </body>
+</html>
